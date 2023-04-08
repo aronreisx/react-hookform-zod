@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import './styles/global.css';
 
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { Form } from './components/Form'
+import { PlusCircle, XCircle } from 'lucide-react';
 
 const createUserFormSchema = z.object({
   name: z.string()
@@ -34,121 +36,116 @@ function transformInitialsCapital(fullName: string) {
   ).join(' ');
 }
 
-function Error({ message = 'Validation error' }: { message?: string }) {
-  return (
-    <span className='text-red-500 text-sm'>{ message }</span>
-  );
-}
-
 export function App() {
   const [output, setOutput] = useState('');
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    control,
-  } = useForm<CreateUserFormData>({
+  const createUserForm = useForm<CreateUserFormData>({
     resolver: zodResolver(createUserFormSchema)
   });
 
+  function createUser(data: CreateUserFormData) {
+    setOutput(JSON.stringify(data, null, 2));
+  }
+
+  const {
+    handleSubmit,
+    formState: { isSubmitting },
+    watch,
+    control,
+  } = createUserForm;
+
+  const userPassword = watch('password')
+  const isPasswordStrong = new RegExp('(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.{8,})').test(userPassword)
+
   const { fields, append, remove } = useFieldArray({
     control,
-    name: 'techs'
+    name: 'techs',
   })
 
   function addNewTech() {
     append({ title: '', knowledge: 0 })
   }
 
-  function createUser(data: CreateUserFormData) {
-    setOutput(JSON.stringify(data, null, 2));
-  }
-
   return (
-    <main className='h-screen bg-zinc-800 text-zinc-300 flex flex-col gap-10 items-center justify-center'>
-      <form onSubmit={handleSubmit(createUser)} className='flex flex-col gap-4 w-full max-w-xs'>
-        <div className='flex flex-col gap-1'>
-          <label htmlFor='name'>Name</label>
-          <input
-            type='text'
-            {...register('name')}
-            className='border bg-zinc-700 border-zinc-600 text-white shadow-sm rounded h-10 px-3'
-          />
-          { errors.name && <Error message={errors.name.message} /> }
-        </div>
-
-        <div className='flex flex-col gap-1'>
-          <label htmlFor='email'>Email</label>
-          <input
-            type='email'
-            {...register('email')}
-            className='border bg-zinc-700 border-zinc-600 text-white shadow-sm rounded h-10 px-3'
-          />
-          { errors.email && <Error message={errors.email.message} /> }
-        </div>
-
-        <div className='flex flex-col gap-1'>
-          <label htmlFor='password'>Password</label>
-          <input
-            type='password'
-            {...register('password')}
-            className='border bg-zinc-700 border-zinc-600 text-white shadow-sm rounded h-10 px-3'
-          />
-          { errors.password && <Error message={errors.password.message} /> }
-        </div>
-
-        <div className='flex flex-col gap-1'>
-          <label
-            htmlFor=''
-            className='flex items-center justify-between'
-          >
-            Technologies
-            <button
-              type='button'
-              onClick={addNewTech}
-              className='text-emerald-500 text-sm'
-            >
-              Add
-            </button>
-          </label>
-          {fields.map((field, index) => {
-            return (
-              <div className='flex gap-2' key={field.id}>
-                <div className="flex-1 flex flex-col gap-1">
-                  <input
-                    type="text"
-                    {...register(`techs.${index}.title`)}
-                    className="border bg-zinc-700 border-zinc-600 text-white shadow-sm rounded h-10 px-3"
-                  />
-                  {errors.techs?.[index]?.title && <Error message={errors.techs[index]?.title?.message} /> }
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <input
-                    type="number"
-                    {...register(`techs.${index}.knowledge`)}
-                    className="w-16 border bg-zinc-700 border-zinc-600 text-white shadow-sm rounded h-10 px-3"
-                  />
-                  {errors.techs?.[index]?.knowledge && <Error message={errors.techs[index]?.knowledge?.message} /> }
-                </div>
-
-              </div>
-            )
-          })}
-
-          { errors.techs && <Error message={errors.techs.message} /> }
-
-        </div>
-
-        <button
-          type='submit'
-          className='bg-emerald-500 rounded font-semibold text-white h-10 hover:bg-emerald-600'
+    <main className="h-screen flex flex-row gap-6 items-center justify-center">
+      <FormProvider {...createUserForm}>
+        <form
+          onSubmit={handleSubmit(createUser)}
+          className="flex flex-col gap-4 w-full max-w-xs"
         >
-          Save
-        </button>
-      </form>
-      <pre>{output}</pre>
+          <Form.Field>
+            <Form.Label htmlFor="name">
+              Name
+            </Form.Label>
+            <Form.Input type="name" name="name" />
+            <Form.ErrorMessage field="name" />
+          </Form.Field>
+
+          <Form.Field>
+            <Form.Label htmlFor="email">
+              Email
+            </Form.Label>
+            <Form.Input type="email" name="email" />
+            <Form.ErrorMessage field="email" />
+          </Form.Field>
+
+          <Form.Field>
+            <Form.Label htmlFor="password">
+              Password
+
+              {isPasswordStrong
+                ? <span className="text-xs text-emerald-600">Strong password</span>
+                : <span className="text-xs text-red-500">Weak password</span>}
+            </Form.Label>
+            <Form.Input type="password" name="password" />
+            <Form.ErrorMessage field="password" />
+          </Form.Field>
+
+          <Form.Field>
+            <Form.Label>
+              Technologies
+
+              <button
+                type="button"
+                onClick={addNewTech}
+                className="text-emerald-500 font-semibold text-xs flex items-center gap-1"
+              >
+                Add
+                <PlusCircle size={14} />
+              </button>
+            </Form.Label>
+            <Form.ErrorMessage field="techs" />
+
+            {fields.map((field, index) => {
+              const fieldName = `techs.${index}.title`
+
+              return (
+                <Form.Field key={field.id}>
+                  <div className="flex gap-2 items-center">
+                    <Form.Input type={fieldName} name={fieldName} />
+                    <button
+                      type="button"
+                      onClick={() => remove(index)}
+                      className="text-red-500"
+                    >
+                      <XCircle size={14} />
+                    </button>
+                  </div>
+                  <Form.ErrorMessage field={fieldName} />
+                </Form.Field>
+              )
+            })}
+          </Form.Field>
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="bg-violet-500 text-white rounded px-3 h-10 font-semibold text-sm hover:bg-violet-600"
+          >
+            Save
+          </button>
+        </form>
+      </FormProvider>
     </main>
   )
 }

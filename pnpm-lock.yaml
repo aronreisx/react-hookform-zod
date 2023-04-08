@@ -6,6 +6,7 @@ specifiers:
   '@types/react-dom': ^18.0.11
   '@vitejs/plugin-react-swc': ^3.0.0
   autoprefixer: ^10.4.14
+  lucide-react: ^0.132.0
   postcss: ^8.4.21
   react: ^18.2.0
   react-dom: ^18.2.0
@@ -17,6 +18,7 @@ specifiers:
 
 dependencies:
   '@hookform/resolvers': 3.0.1_react-hook-form@7.43.9
+  lucide-react: 0.132.0_react@18.2.0
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
   react-hook-form: 7.43.9_react@18.2.0
@@ -703,6 +705,14 @@ packages:
     hasBin: true
     dependencies:
       js-tokens: 4.0.0
+    dev: false
+
+  /lucide-react/0.132.0_react@18.2.0:
+    resolution: {integrity: sha512-Wj+SuozBL+W3y0aYbblbTbl3ZV0R449cJeX076I46Z99err/6ahYHwGK+GGgq2yCB3sSTYRfAznBGBwNcSxV1w==}
+    peerDependencies:
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0
+    dependencies:
+      react: 18.2.0
     dev: false
 
   /merge2/1.4.1:
